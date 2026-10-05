@@ -60,14 +60,14 @@ GPetManager::GPetManager(QWidget *parent)
     rafraichir();
 
     // CRUD
-    connect(ui->btnEnregistrer, &QPushButton::clicked, this, &GPetManager::enregistrerProduit);
-    connect(ui->btnModifier,    &QPushButton::clicked, this, &GPetManager::modifierProduit);
-    connect(ui->btnSupprimer,   &QPushButton::clicked, this, &GPetManager::supprimerProduit);
-    connect(ui->btnAnnuler,     &QPushButton::clicked, this, &GPetManager::annulerEdition);
+    connect(ui->btnEnregistrerStock, &QPushButton::clicked, this, &GPetManager::enregistrerProduit);
+    connect(ui->btnModifierStock,    &QPushButton::clicked, this, &GPetManager::modifierProduit);
+    connect(ui->btnSupprimerStock,   &QPushButton::clicked, this, &GPetManager::supprimerProduit);
+    connect(ui->btnAnnulerStock,     &QPushButton::clicked, this, &GPetManager::annulerEdition);
 
     // Recherche (par nom) et tri (aucun / par date d'expiration)
-    connect(ui->txtRecherche, &QLineEdit::textChanged, this, &GPetManager::afficherTableau);
-    connect(ui->cmbTri, QOverload<int>::of(&QComboBox::currentIndexChanged),
+    connect(ui->txtRechercheStock, &QLineEdit::textChanged, this, &GPetManager::afficherTableau);
+    connect(ui->cmbTriStock, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &GPetManager::afficherTableau);
 
     // Double-clic sur une ligne = charger le produit dans le formulaire
@@ -77,14 +77,14 @@ GPetManager::GPetManager(QWidget *parent)
     });
 
     // Métiers
-    connect(ui->cmbPeriode, QOverload<int>::of(&QComboBox::currentIndexChanged),
+    connect(ui->cmbPeriodeStock, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &GPetManager::mettreAJourGraphiqueConso);
     connect(ui->btnNotif,         &QPushButton::clicked, this, &GPetManager::afficherNotifications);
-    connect(ui->btnVoirTout,      &QPushButton::clicked, this, [this]() { changerPage(PAGE_REAPPRO); });
-    connect(ui->btnOuvrirReappro, &QPushButton::clicked, this, [this]() { changerPage(PAGE_REAPPRO); });
-    connect(ui->btnExcel,         &QPushButton::clicked, this, &GPetManager::exporterExcel);
+    connect(ui->btnVoirToutStock,      &QPushButton::clicked, this, [this]() { changerPage(PAGE_REAPPRO); });
+    connect(ui->btnOuvrirReapproStock, &QPushButton::clicked, this, [this]() { changerPage(PAGE_REAPPRO); });
+    connect(ui->btnExcelStock,         &QPushButton::clicked, this, &GPetManager::exporterExcel);
     // Clic sur une carte alternative = ouvrir la substitution avec ce produit présélectionné
-    for (QFrame *carte : {ui->frameAlt1, ui->frameAlt2}) {
+    for (QFrame *carte : {ui->frameAlt1Stock, ui->frameAlt2Stock}) {
         carte->installEventFilter(this);
         for (QLabel *lbl : carte->findChildren<QLabel*>())
             lbl->setAttribute(Qt::WA_TransparentForMouseEvents);
@@ -92,12 +92,12 @@ GPetManager::GPetManager(QWidget *parent)
 
     // Page Réapprovisionnement intelligent
     connect(ui->btnRetourStock,        &QPushButton::clicked, this, [this]() { changerPage(PAGE_STOCK); });
-    connect(ui->btnCommanderSelection, &QPushButton::clicked, this, &GPetManager::commanderSelection);
-    connect(ui->btnToutSelectionner,   &QPushButton::clicked, this, &GPetManager::toutSelectionner);
-    connect(ui->btnExcelSuggestions,   &QPushButton::clicked, this, &GPetManager::exporterExcel);
-    connect(ui->btnExcelCommandes,     &QPushButton::clicked, this, &GPetManager::exporterCommandesExcel);
-    connect(ui->spinDelai,      QOverload<int>::of(&QSpinBox::valueChanged), this, &GPetManager::rafraichir);
-    connect(ui->spinCouverture, QOverload<int>::of(&QSpinBox::valueChanged), this, &GPetManager::rafraichir);
+    connect(ui->btnCommanderSelectionStock, &QPushButton::clicked, this, &GPetManager::commanderSelection);
+    connect(ui->btnToutSelectionnerStock,   &QPushButton::clicked, this, &GPetManager::toutSelectionner);
+    connect(ui->btnExcelSuggestionsStock,   &QPushButton::clicked, this, &GPetManager::exporterExcel);
+    connect(ui->btnExcelCommandesStock,     &QPushButton::clicked, this, &GPetManager::exporterCommandesExcel);
+    connect(ui->spinDelaiStock,      QOverload<int>::of(&QSpinBox::valueChanged), this, &GPetManager::rafraichir);
+    connect(ui->spinCouvertureStock, QOverload<int>::of(&QSpinBox::valueChanged), this, &GPetManager::rafraichir);
 
     // Contrôle automatique au démarrage
     QTimer::singleShot(800, this, [this]() {
@@ -118,8 +118,8 @@ bool GPetManager::eventFilter(QObject *objet, QEvent *evenement)
 {
     if (evenement->type() == QEvent::MouseButtonPress) {
         int k = -1;
-        if (objet == ui->frameAlt1) k = 0;
-        else if (objet == ui->frameAlt2) k = 1;
+        if (objet == ui->frameAlt1Stock) k = 0;
+        else if (objet == ui->frameAlt2Stock) k = 1;
         if (k >= 0 && k < indexAlternatives.size()) {
             const int alternative = indexAlternatives[k];
             QTimer::singleShot(0, this, [this, alternative]() {
@@ -162,7 +162,7 @@ void GPetManager::changerPage(int index)
                                 "Réapprovisionnement intelligent"};
     const QStringList icones = {"home", "paw", "calendar", "box", "cart", "truck", "users", "gear", "clipboard"};
 
-    ui->stackedWidget->setCurrentIndex(index);
+    ui->SWModules->setCurrentIndex(index);
     ui->lblIconeTitre->setPixmap(icone(icones[index] + "_teal").pixmap(64, 64));
     ui->lblTitre->setText(titres[index]);
     // La page Réapprovisionnement fait partie du module Stock
@@ -201,56 +201,56 @@ void GPetManager::configurerTableau()
 
 void GPetManager::configurerFormulaire()
 {
-    ui->cmbTri->addItems({"Aucun tri",
+    ui->cmbTriStock->addItems({"Aucun tri",
                           "Date d'expiration : la plus proche d'abord",
                           "Date d'expiration : la plus lointaine d'abord"});
-    ui->cmbPeriode->addItems({"7 derniers jours", "30 derniers jours"});
-    ui->cmbCategorie->addItems({"Sélectionner une catégorie", "Alimentation", "Médicament", "Équipement"});
-    ui->cmbEspece->addItems({"Choisir…", "Chien", "Chat", "Toutes"});
-    ui->cmbUsage->addItems({"Choisir…", "Nutrition", "Soin", "Vaccination", "Hygiène",
+    ui->cmbPeriodeStock->addItems({"7 derniers jours", "30 derniers jours"});
+    ui->cmbCategorieStock->addItems({"Sélectionner une catégorie", "Alimentation", "Médicament", "Équipement"});
+    ui->cmbEspeceStock->addItems({"Choisir…", "Chien", "Chat", "Toutes"});
+    ui->cmbUsageStock->addItems({"Choisir…", "Nutrition", "Soin", "Vaccination", "Hygiène",
                             "Diagnostic", "Promenade", "Transport"});
-    ui->cmbEspece->setToolTip("Espèce à laquelle le produit est destiné");
-    ui->cmbUsage->setToolTip("Rôle du produit : sert à trouver des alternatives compatibles");
+    ui->cmbEspeceStock->setToolTip("Espèce à laquelle le produit est destiné");
+    ui->cmbUsageStock->setToolTip("Rôle du produit : sert à trouver des alternatives compatibles");
 
     // Listes déroulantes : délégué standard pour que le texte des options
     // s'affiche correctement avec la feuille de style
     for (QComboBox *combo : findChildren<QComboBox*>())
         combo->setItemDelegate(new QStyledItemDelegate(combo));
 
-    ui->txtRecherche->setClearButtonEnabled(true);
-    ui->txtRecherche->addAction(icone("search_grey"), QLineEdit::LeadingPosition);
+    ui->txtRechercheStock->setClearButtonEnabled(true);
+    ui->txtRechercheStock->addAction(icone("search_grey"), QLineEdit::LeadingPosition);
     ui->lblAvatar->setPixmap(icone("user_teal").pixmap(26, 26));
 
-    ui->spinQuantite->setRange(0, 100000);
-    ui->spinSeuil->setRange(0, 100000);
+    ui->spinQuantiteStock->setRange(0, 100000);
+    ui->spinSeuilStock->setRange(0, 100000);
 
-    ui->dateExpiration->setCalendarPopup(true);
-    ui->dateExpiration->setDisplayFormat("dd/MM/yyyy");
-    ui->dateExpiration->setDate(QDate::currentDate());
+    ui->dateExpirationStock->setCalendarPopup(true);
+    ui->dateExpirationStock->setDisplayFormat("dd/MM/yyyy");
+    ui->dateExpirationStock->setDate(QDate::currentDate());
 
-    ui->spinPrix->setDecimals(3);
-    ui->spinPrix->setRange(0, 1000000);
-    ui->spinPrix->setSuffix(" TND");
+    ui->spinPrixStock->setDecimals(3);
+    ui->spinPrixStock->setRange(0, 1000000);
+    ui->spinPrixStock->setSuffix(" TND");
 }
 
 void GPetManager::configurerReappro()
 {
-    ui->spinDelai->setRange(1, 60);
-    ui->spinDelai->setValue(3);
-    ui->spinDelai->setSuffix(" jours");
-    ui->spinCouverture->setRange(1, 90);
-    ui->spinCouverture->setValue(14);
-    ui->spinCouverture->setSuffix(" jours");
+    ui->spinDelaiStock->setRange(1, 60);
+    ui->spinDelaiStock->setValue(3);
+    ui->spinDelaiStock->setSuffix(" jours");
+    ui->spinCouvertureStock->setRange(1, 90);
+    ui->spinCouvertureStock->setValue(14);
+    ui->spinCouvertureStock->setSuffix(" jours");
 
     // Tableau des suggestions
-    QTableWidget *s = ui->tableSuggestions;
+    QTableWidget *s = ui->tableSuggestionsStock;
     s->setColumnCount(10);
     s->setHorizontalHeaderLabels({"", "Produit", "Stock", "Seuil", "Conso./jour", "Rupture prévue",
                                   "Priorité", "Qté conseillée", "Fournisseur", "Montant (TND)"});
     const QList<int> largeursS = {40, 0, 70, 70, 95, 140, 125, 120, 120, 120};
 
     // Tableau des commandes
-    QTableWidget *c = ui->tableCommandes;
+    QTableWidget *c = ui->tableCommandesStock;
     c->setColumnCount(9);
     c->setHorizontalHeaderLabels({"N°", "Produit", "Quantité", "Fournisseur", "Commandée le",
                                   "Livraison prévue", "Montant (TND)", "Statut", "Actions"});
@@ -280,7 +280,7 @@ void GPetManager::configurerReappro()
     preparer(c, largeursC);
 
     // Historique des substitutions (page Stock)
-    QTableWidget *h = ui->tableSubstitutions;
+    QTableWidget *h = ui->tableSubstitutionsStock;
     h->setColumnCount(6);
     h->setHorizontalHeaderLabels({"Date", "Produit demandé", "Remplacé par", "Quantité",
                                   "Compatibilité", "Motif"});
@@ -295,10 +295,10 @@ void GPetManager::configurerGraphiques()
         l->setContentsMargins(0, 0, 0, 0);
         l->addWidget(graphique);
     };
-    graphConso      = new GraphiqueCourbes(ui->widgetGraphique);
-    graphCategories = new GraphiqueCamembert(ui->widgetCamembert);
-    placer(graphConso, ui->widgetGraphique);
-    placer(graphCategories, ui->widgetCamembert);
+    graphConso      = new GraphiqueCourbes(ui->widgetGraphiqueStock);
+    graphCategories = new GraphiqueCamembert(ui->widgetCamembertStock);
+    placer(graphConso, ui->widgetGraphiqueStock);
+    placer(graphCategories, ui->widgetCamembertStock);
 
     ui->scrollStock->viewport()->setAutoFillBackground(false);
     ui->scrollReappro->viewport()->setAutoFillBackground(false);
@@ -395,8 +395,8 @@ Analyse GPetManager::analyserProduit(int index) const
 {
     const Produit &p = produits[index];
     const QDate auj = QDate::currentDate();
-    const int delai = ui->spinDelai->value();
-    const int couverture = ui->spinCouverture->value();
+    const int delai = ui->spinDelaiStock->value();
+    const int couverture = ui->spinCouvertureStock->value();
     Analyse a;
 
     int total = 0;
@@ -534,7 +534,7 @@ bool GPetManager::creerCommande(int indexProduit, int quantite, bool silencieux)
     c.quantite = quantite;
     c.fournisseur = p.fournisseur;
     c.dateCommande = QDate::currentDate();
-    c.dateLivraison = QDate::currentDate().addDays(ui->spinDelai->value());
+    c.dateLivraison = QDate::currentDate().addDays(ui->spinDelaiStock->value());
     c.montant = quantite * p.prix;
     c.statut = "En attente";
     commandes.append(c);
@@ -550,7 +550,7 @@ bool GPetManager::creerCommande(int indexProduit, int quantite, bool silencieux)
 
 void GPetManager::commanderSelection()
 {
-    QTableWidget *t = ui->tableSuggestions;
+    QTableWidget *t = ui->tableSuggestionsStock;
     int nb = 0;
     double total = 0;
     for (int l = 0; l < t->rowCount(); ++l) {
@@ -576,7 +576,7 @@ void GPetManager::commanderSelection()
 
 void GPetManager::toutSelectionner()
 {
-    QTableWidget *t = ui->tableSuggestions;
+    QTableWidget *t = ui->tableSuggestionsStock;
     bool toutCoche = true;
     for (int l = 0; l < t->rowCount(); ++l) {
         QTableWidgetItem *chk = t->item(l, 0);
@@ -836,14 +836,14 @@ QWidget* GPetManager::creerActions(int index)
 void GPetManager::afficherTableau()
 {
     // 1) Recherche uniquement par nom
-    const QString filtre = ui->txtRecherche->text().trimmed();
+    const QString filtre = ui->txtRechercheStock->text().trimmed();
     QVector<int> ordre;
     for (int i = 0; i < produits.size(); ++i)
         if (filtre.isEmpty() || produits[i].nom.contains(filtre, Qt::CaseInsensitive))
             ordre.append(i);
 
     // 2) Tri : 0 = aucun (ordre d'ajout), 1 = date la plus proche, 2 = date la plus lointaine
-    const int tri = ui->cmbTri->currentIndex();
+    const int tri = ui->cmbTriStock->currentIndex();
     if (tri != 0) {
         std::stable_sort(ordre.begin(), ordre.end(), [&](int a, int b) {
             return tri == 1 ? produits[a].dateExpiration < produits[b].dateExpiration
@@ -894,9 +894,9 @@ void GPetManager::afficherTableau()
     ajusterHauteurTableau(t, ordre.size());
 
     if (ordre.isEmpty())
-        ui->lblAffichage->setText("Aucun produit ne correspond à « " + filtre + " »");
+        ui->lblAffichageStock->setText("Aucun produit ne correspond à « " + filtre + " »");
     else
-        ui->lblAffichage->setText(QString("Affichage de %1 sur %2 produits")
+        ui->lblAffichageStock->setText(QString("Affichage de %1 sur %2 produits")
                                       .arg(ordre.size()).arg(produits.size()));
 }
 
@@ -906,8 +906,8 @@ void GPetManager::mettreAJourCartes()
     for (const Produit &p : produits)
         valeur += p.quantite * p.prix;
 
-    ui->lblValeurTotal->setText(QString::number(produits.size()));
-    ui->lblValeurReappro->setText(QString::number(indicesAReapprovisionner().size()));
+    ui->lblValeurTotalStock->setText(QString::number(produits.size()));
+    ui->lblValeurReapproStock->setText(QString::number(indicesAReapprovisionner().size()));
     ui->lblValeurStock->setText(QLocale(QLocale::French).toString(valeur, 'f', 0) + " TND");
 }
 
@@ -915,12 +915,12 @@ void GPetManager::mettreAJourAlertes()
 {
     const QVector<int> liste = indicesAReapprovisionner();
 
-    ui->lblAlerteBadge->setText(QString::number(liste.size()));
+    ui->lblAlerteBadgeStock->setText(QString::number(liste.size()));
     badgeNotif->setText(QString::number(liste.size()));
     badgeNotif->setVisible(!liste.isEmpty());
 
-    const QList<QLabel*> noms = {ui->lblAlerte1, ui->lblAlerte2, ui->lblAlerte3};
-    const QList<QLabel*> infos = {ui->lblQte1, ui->lblQte2, ui->lblQte3};
+    const QList<QLabel*> noms = {ui->lblAlerte1Stock, ui->lblAlerte2Stock, ui->lblAlerte3Stock};
+    const QList<QLabel*> infos = {ui->lblQte1Stock, ui->lblQte2Stock, ui->lblQte3Stock};
 
     for (int i = 0; i < 3; ++i) {
         if (i < liste.size()) {
@@ -972,14 +972,14 @@ void GPetManager::mettreAJourAlternatives()
     indexAlternatives.clear();
     for (const Alternative &a : alternatives) indexAlternatives.append(a.index);
 
-    ui->lblAltPour->setText(ref >= 0 ? "Pour : " + raccourcir(produits[ref].nom, 30)
+    ui->lblAltPourStock->setText(ref >= 0 ? "Pour : " + raccourcir(produits[ref].nom, 30)
                                      : "Aucun produit en alerte");
 
-    const QList<QFrame*> cadres  = {ui->frameAlt1, ui->frameAlt2};
-    const QList<QLabel*> icones  = {ui->lblAltIcone1, ui->lblAltIcone2};
-    const QList<QLabel*> nomsAlt = {ui->lblAltNom1, ui->lblAltNom2};
-    const QList<QLabel*> scores  = {ui->lblAltCat1, ui->lblAltCat2};
-    const QList<QLabel*> infos   = {ui->lblAltQte1, ui->lblAltQte2};
+    const QList<QFrame*> cadres  = {ui->frameAlt1Stock, ui->frameAlt2Stock};
+    const QList<QLabel*> icones  = {ui->lblAltIcone1Stock, ui->lblAltIcone2Stock};
+    const QList<QLabel*> nomsAlt = {ui->lblAltNom1Stock, ui->lblAltNom2Stock};
+    const QList<QLabel*> scores  = {ui->lblAltCat1Stock, ui->lblAltCat2Stock};
+    const QList<QLabel*> infos   = {ui->lblAltQte1Stock, ui->lblAltQte2Stock};
 
     for (int k = 0; k < 2; ++k) {
         if (k < alternatives.size()) {
@@ -997,12 +997,12 @@ void GPetManager::mettreAJourAlternatives()
             cadres[k]->hide();
         }
     }
-    ui->lblAucuneAlt->setVisible(ref >= 0 && alternatives.isEmpty());
+    ui->lblAucuneAltStock->setVisible(ref >= 0 && alternatives.isEmpty());
 }
 
 void GPetManager::mettreAJourGraphiqueConso()
 {
-    const int nbJours = (ui->cmbPeriode->currentIndex() == 0) ? 7 : 30;
+    const int nbJours = (ui->cmbPeriodeStock->currentIndex() == 0) ? 7 : 30;
     const QDate debut = QDate::currentDate().addDays(-(nbJours - 1));
 
     QStringList etiquettes;
@@ -1054,7 +1054,7 @@ void GPetManager::mettreAJourStatistiques()
 void GPetManager::afficherSuggestions()
 {
     const QVector<int> liste = indicesAReapprovisionner(true);
-    QTableWidget *t = ui->tableSuggestions;
+    QTableWidget *t = ui->tableSuggestionsStock;
     t->setRowCount(0);
     t->setRowCount(liste.size());
 
@@ -1116,11 +1116,11 @@ void GPetManager::afficherSuggestions()
 
     ajusterHauteurTableau(t, liste.size());
     t->setVisible(!liste.isEmpty());
-    ui->lblAucuneSuggestion->setVisible(liste.isEmpty());
-    ui->btnCommanderSelection->setEnabled(liste.size() > nbCommandes);
-    ui->btnToutSelectionner->setEnabled(liste.size() > nbCommandes);
+    ui->lblAucuneSuggestionStock->setVisible(liste.isEmpty());
+    ui->btnCommanderSelectionStock->setEnabled(liste.size() > nbCommandes);
+    ui->btnToutSelectionnerStock->setEnabled(liste.size() > nbCommandes);
 
-    ui->lblCompteurs->setText(
+    ui->lblCompteursStock->setText(
         QString("<span style='color:#E53935'>●</span> Critique : <b>%1</b> &nbsp;&nbsp;&nbsp; "
                 "<span style='color:#F5A623'>●</span> Urgent : <b>%2</b> &nbsp;&nbsp;&nbsp; "
                 "<span style='color:#1E88E5'>●</span> Préventif : <b>%3</b> &nbsp;&nbsp;&nbsp; "
@@ -1132,7 +1132,7 @@ void GPetManager::afficherSuggestions()
 
 void GPetManager::afficherCommandes()
 {
-    QTableWidget *t = ui->tableCommandes;
+    QTableWidget *t = ui->tableCommandesStock;
     t->setRowCount(0);
 
     // Les commandes les plus récentes en premier
@@ -1193,7 +1193,7 @@ void GPetManager::afficherCommandes()
 
     ajusterHauteurTableau(t, ordre.size());
     t->setVisible(!ordre.isEmpty());
-    ui->lblAucuneCommande->setVisible(ordre.isEmpty());
+    ui->lblAucuneCommandeStock->setVisible(ordre.isEmpty());
 }
 
 // =====================================================================
@@ -1202,58 +1202,58 @@ void GPetManager::afficherCommandes()
 
 bool GPetManager::lireFormulaire(Produit &p, bool nouveau)
 {
-    const QString nom = ui->txtNom->text().trimmed();
+    const QString nom = ui->txtNomStock->text().trimmed();
     if (nom.isEmpty()) {
         QMessageBox::warning(this, "Champ obligatoire", "Veuillez saisir le nom du produit.");
-        ui->txtNom->setFocus();
+        ui->txtNomStock->setFocus();
         return false;
     }
     for (int i = 0; i < produits.size(); ++i)
         if ((nouveau || i != indexEnEdition) && produits[i].nom.compare(nom, Qt::CaseInsensitive) == 0) {
             QMessageBox::warning(this, "Doublon", "Un produit portant ce nom existe déjà.");
-            ui->txtNom->setFocus();
+            ui->txtNomStock->setFocus();
             return false;
         }
-    if (ui->cmbCategorie->currentIndex() == 0) {
+    if (ui->cmbCategorieStock->currentIndex() == 0) {
         QMessageBox::warning(this, "Champ obligatoire", "Veuillez choisir une catégorie.");
-        ui->cmbCategorie->setFocus();
+        ui->cmbCategorieStock->setFocus();
         return false;
     }
-    if (ui->cmbEspece->currentIndex() == 0) {
+    if (ui->cmbEspeceStock->currentIndex() == 0) {
         QMessageBox::warning(this, "Champ obligatoire", "Veuillez choisir l'espèce.");
-        ui->cmbEspece->setFocus();
+        ui->cmbEspeceStock->setFocus();
         return false;
     }
-    if (ui->cmbUsage->currentIndex() == 0) {
+    if (ui->cmbUsageStock->currentIndex() == 0) {
         QMessageBox::warning(this, "Champ obligatoire", "Veuillez choisir l'usage du produit.");
-        ui->cmbUsage->setFocus();
+        ui->cmbUsageStock->setFocus();
         return false;
     }
-    if (nouveau && ui->dateExpiration->date() <= QDate::currentDate()) {
+    if (nouveau && ui->dateExpirationStock->date() <= QDate::currentDate()) {
         QMessageBox::warning(this, "Date invalide", "La date d'expiration doit être dans le futur.");
-        ui->dateExpiration->setFocus();
+        ui->dateExpirationStock->setFocus();
         return false;
     }
-    if (ui->txtFournisseur->text().trimmed().isEmpty()) {
+    if (ui->txtFournisseurStock->text().trimmed().isEmpty()) {
         QMessageBox::warning(this, "Champ obligatoire", "Veuillez saisir le fournisseur.");
-        ui->txtFournisseur->setFocus();
+        ui->txtFournisseurStock->setFocus();
         return false;
     }
-    if (ui->spinPrix->value() <= 0) {
+    if (ui->spinPrixStock->value() <= 0) {
         QMessageBox::warning(this, "Prix invalide", "Le prix unitaire doit être supérieur à 0.");
-        ui->spinPrix->setFocus();
+        ui->spinPrixStock->setFocus();
         return false;
     }
 
     p.nom            = nom;
-    p.categorie      = ui->cmbCategorie->currentText();
-    p.espece         = ui->cmbEspece->currentText();
-    p.usage          = ui->cmbUsage->currentText();
-    p.quantite       = ui->spinQuantite->value();
-    p.seuil          = ui->spinSeuil->value();
-    p.dateExpiration = ui->dateExpiration->date();
-    p.fournisseur    = ui->txtFournisseur->text().trimmed();
-    p.prix           = ui->spinPrix->value();
+    p.categorie      = ui->cmbCategorieStock->currentText();
+    p.espece         = ui->cmbEspeceStock->currentText();
+    p.usage          = ui->cmbUsageStock->currentText();
+    p.quantite       = ui->spinQuantiteStock->value();
+    p.seuil          = ui->spinSeuilStock->value();
+    p.dateExpiration = ui->dateExpirationStock->date();
+    p.fournisseur    = ui->txtFournisseurStock->text().trimmed();
+    p.prix           = ui->spinPrixStock->value();
     return true;
 }
 
@@ -1262,20 +1262,20 @@ void GPetManager::chargerDansFormulaire(int index)
     if (index < 0 || index >= produits.size()) return;
     const Produit &p = produits[index];
 
-    ui->txtNom->setText(p.nom);
-    ui->cmbCategorie->setCurrentText(p.categorie);
-    ui->cmbEspece->setCurrentText(p.espece);
-    ui->cmbUsage->setCurrentText(p.usage);
-    ui->spinQuantite->setValue(p.quantite);
-    ui->spinSeuil->setValue(p.seuil);
-    ui->dateExpiration->setDate(p.dateExpiration);
-    ui->txtFournisseur->setText(p.fournisseur);
-    ui->spinPrix->setValue(p.prix);
+    ui->txtNomStock->setText(p.nom);
+    ui->cmbCategorieStock->setCurrentText(p.categorie);
+    ui->cmbEspeceStock->setCurrentText(p.espece);
+    ui->cmbUsageStock->setCurrentText(p.usage);
+    ui->spinQuantiteStock->setValue(p.quantite);
+    ui->spinSeuilStock->setValue(p.seuil);
+    ui->dateExpirationStock->setDate(p.dateExpiration);
+    ui->txtFournisseurStock->setText(p.fournisseur);
+    ui->spinPrixStock->setValue(p.prix);
 
     indexEnEdition = index;
     mettreAJourModeFormulaire();
     ui->scrollStock->verticalScrollBar()->setValue(0);
-    ui->txtNom->setFocus();
+    ui->txtNomStock->setFocus();
     mettreAJourAlternatives();
 }
 
@@ -1284,14 +1284,14 @@ void GPetManager::chargerDansFormulaire(int index)
 void GPetManager::mettreAJourModeFormulaire()
 {
     const bool edition = (indexEnEdition >= 0);
-    ui->btnEnregistrer->setEnabled(!edition);
-    ui->btnModifier->setEnabled(edition);
-    ui->btnAnnuler->setEnabled(edition);
+    ui->btnEnregistrerStock->setEnabled(!edition);
+    ui->btnModifierStock->setEnabled(edition);
+    ui->btnAnnulerStock->setEnabled(edition);
 
     if (edition)
-        ui->lblFormTitre->setText("Modifier : " + raccourcir(produits[indexEnEdition].nom, 22));
+        ui->lblFormTitreStock->setText("Modifier : " + raccourcir(produits[indexEnEdition].nom, 22));
     else
-        ui->lblFormTitre->setText("Ajouter un produit");
+        ui->lblFormTitreStock->setText("Ajouter un produit");
 }
 
 void GPetManager::annulerEdition()
@@ -1303,15 +1303,15 @@ void GPetManager::annulerEdition()
 
 void GPetManager::viderFormulaire()
 {
-    ui->txtNom->clear();
-    ui->cmbCategorie->setCurrentIndex(0);
-    ui->cmbEspece->setCurrentIndex(0);
-    ui->cmbUsage->setCurrentIndex(0);
-    ui->spinQuantite->setValue(0);
-    ui->spinSeuil->setValue(0);
-    ui->dateExpiration->setDate(QDate::currentDate());
-    ui->txtFournisseur->clear();
-    ui->spinPrix->setValue(0);
+    ui->txtNomStock->clear();
+    ui->cmbCategorieStock->setCurrentIndex(0);
+    ui->cmbEspeceStock->setCurrentIndex(0);
+    ui->cmbUsageStock->setCurrentIndex(0);
+    ui->spinQuantiteStock->setValue(0);
+    ui->spinSeuilStock->setValue(0);
+    ui->dateExpirationStock->setDate(QDate::currentDate());
+    ui->txtFournisseurStock->clear();
+    ui->spinPrixStock->setValue(0);
     indexEnEdition = -1;
     mettreAJourModeFormulaire();
 }
@@ -1767,7 +1767,7 @@ void GPetManager::ouvrirSubstitution(int indexProduit, int quantiteDemandee, int
 
 void GPetManager::afficherSubstitutions()
 {
-    QTableWidget *t = ui->tableSubstitutions;
+    QTableWidget *t = ui->tableSubstitutionsStock;
     t->setRowCount(0);
     t->setRowCount(substitutions.size());
 
@@ -1783,7 +1783,7 @@ void GPetManager::afficherSubstitutions()
     }
     ajusterHauteurTableau(t, substitutions.size());
     t->setVisible(!substitutions.isEmpty());
-    ui->lblAucuneSubstitution->setVisible(substitutions.isEmpty());
+    ui->lblAucuneSubstitutionStock->setVisible(substitutions.isEmpty());
 }
 
 // =====================================================================
